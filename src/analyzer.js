@@ -9,32 +9,58 @@ const MODEL_NAME = 'gemma3';
 
 // Rule-based spam patterns
 const SPAM_RULES = {
+  // Suspicious or automated sender patterns
   senders: [
     'noreply@',
     'no-reply@',
     'donotreply@',
-    'notification@',
-    'alert@',
+    'mailer-daemon@',
+    'auto@',
+    'support@',
+    'service@',
+    'newsletter@',
+    'promo@',
+    'offers@',
+    'marketing@',
+    '.ru',
+    '.xyz',
+    '.top',
+    '.click',
+    '.online',
+    'jobs-listings'
   ],
+
+  // Commonly spammy subject lines or trigger phrases
   subjects: [
-    'verify your account',
-    'confirm your identity',
-    'update payment method',
-    'claim your prize',
-    'urgent action required',
-    'suspicious activity',
-    'reset password',
-    'click here now',
+    'limited time offer',
+    'act now',
+    'claim your reward',
+    'click here to',
+    'important security alert',
   ],
+
+  // Keywords often appearing in spam bodies
   keywords: [
-    'nigerian prince',
-    'wire transfer',
-    'bitcoin',
-    'cryptocurrency',
-    'congratulations you won',
-    'tax refund',
-  ],
+    'win a',
+    'free gift',
+    'limited offer',
+    'exclusive deal',
+    '100% free',
+    'no cost',
+    'trial offer',
+    'work from home',
+    'easy money',
+    'get rich',
+    'crypto investment',
+    'forex trading',
+    'loan approval',
+    'debt relief',
+    'unsecured loan',
+    'click below',
+    'unsubscribe now',
+  ]
 };
+
 
 function isRuleBasedSpam(from, subject, snippet) {
   const lowerFrom = from.toLowerCase();
@@ -110,20 +136,29 @@ async function callOllama(emailData){
 
 
   const prompt = `
-    Given the following email:
-    From: ${emailData.from}
-    Subject: ${emailData.subject}
-    Content: ${emailData.content}
-    You must analyze and return ONLY a valid JSON in this format:
-    {
+  Given the following email:
+  From: ${emailData.from}
+  Subject: ${emailData.subject}
+  Content: ${emailData.content}
+
+  Analyze the email and return ONLY a valid JSON in the following format:
+  {
     "isSpam": true/false,
     "summary": "...",
     "sender": "...",
     "subject": "...",
     "confidence": number (0-100),
     "timestamp": "${new Date().toISOString()}"
-    }
-    Respond with nothing but valid JSON.`;
+  }
+
+  Guidelines for classification:
+  - Mark "isSpam": true ONLY if the email clearly shows characteristics of spam, scams, phishing, fake job offers, or bulk marketing.
+  - DO NOT mark legitimate professional or recruiting emails as spam, especially if they include proper names, company details, or job-related context from known platforms like LinkedIn.
+  - Evaluate tone, structure, sender authenticity, and context to determine legitimacy.
+  - Use "confidence" to reflect how certain you are about the classification (e.g., 90+ for clear cases, 60–80 for uncertain).
+  - Always respond with valid JSON and nothing else.
+  `;
+
 
   const response = await fetch(`${OLLAMA_HOST}/api/generate`, {
     method: 'POST',
@@ -219,7 +254,7 @@ export async function analyzeEmails(fetchedEmails) {
 
   // --- Save results
   const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-  const outputPath = path.join(process.cwd(), `analysis-${timestamp}.json`);
+  const outputPath = path.join(process.cwd(), `analysis-latest.json`);
   
   await fs.writeFile(outputPath, JSON.stringify(results, null, 2));
   console.log(`💾 Results saved to: ${outputPath}`);

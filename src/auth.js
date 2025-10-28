@@ -1,10 +1,10 @@
-const { google } = require('googleapis');
-const { OAuth2Client } = require('google-auth-library');
-const fs = require('fs/promises');
-const path = require('path');
-const http = require('http');
-const { URL } = require('url');
-const open = require('open');
+import { google } from 'googleapis';
+import { OAuth2Client } from 'google-auth-library';
+import fs from 'fs/promises';
+import path from 'path';
+import http from 'http';
+import { URL } from 'url';
+import open from 'open';
 
 // File paths
 const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
@@ -16,14 +16,10 @@ const SCOPES = [
   'https://www.googleapis.com/auth/gmail.modify',
 ];
 
-/**
- * Main authentication function
- * Returns an authenticated OAuth2 client
- */
-async function authenticate(){
+
+export async function authenticate(){
   const credentials = await loadCredentials();
   
-  // Web app structure: credentials.web instead of credentials.installed
   const { client_id, client_secret, redirect_uris } = credentials.web;
   const oAuth2Client = new google.auth.OAuth2(
     client_id,
@@ -162,4 +158,3 @@ function getAuthCodeFromCallback(){
   });
 }
 
-module.exports = { authenticate };

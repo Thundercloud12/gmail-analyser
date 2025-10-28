@@ -1,5 +1,5 @@
-const fs = require('fs/promises');
-const path = require('path');
+import fs from "fs/promises"
+import path from "path"
 
 const STATE_PATH = path.join(process.cwd(), 'gmail-state.json');
 
@@ -69,7 +69,7 @@ async function fetchEmailDetails(gmail, ids) {
   return emails;
 }
 
-async function fetchRecentEmails(gmail) {
+export async function fetchRecentEmails(gmail) {
   const state = await loadLastRun();
   const lastTimestamp = state.timestamp || Date.now();
 
@@ -95,4 +95,3 @@ async function fetchRecentEmails(gmail) {
   return emails;
 }
 
-module.exports = { fetchRecentEmails };
